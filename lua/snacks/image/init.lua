@@ -259,11 +259,17 @@ function M.setup(ev)
   })
 
   if M.config.formats and #M.config.formats > 0 then
-    vim.api.nvim_create_autocmd("BufReadCmd", {
+    vim.api.nvim_create_autocmd("BufEnter", {
       pattern = "*." .. table.concat(M.config.formats, ",*."),
       group = group,
       callback = function(e)
         M.buf.attach(e.buf)
+      end,
+    })
+    vim.api.nvim_create_autocmd("BufReadCmd", {
+      pattern = "*." .. table.concat(M.config.formats, ",*."),
+      group = group,
+      callback = function(e)
       end,
     })
     -- prevent altering the original image file
