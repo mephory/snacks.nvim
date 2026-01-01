@@ -102,6 +102,8 @@ function M.new(buf, src, opts)
     self:progress()
   end
 
+  Snacks.util.bo(self.buf, { modified = false })
+
   local update = self.update
   self.update = Snacks.util.debounce(function()
     update(self)
@@ -534,10 +536,10 @@ function M:update()
   end
   self._state = state
 
-  if #state.wins == 0 then
-    self:hide()
-    return
-  end
+  -- if #state.wins == 0 then
+  --   self:hide()
+  --   return
+  -- end
   self.img:place(self)
 
   self:debug("update")
@@ -562,6 +564,8 @@ function M:update()
   else
     self:render_fallback(state)
   end
+
+  Snacks.util.bo(self.buf, { modified = false })
 
   if not self.opts.inline then
     for _, win in ipairs(state.wins) do
