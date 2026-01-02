@@ -77,6 +77,22 @@ local commands = {
       end
     end,
   },
+  oilssh = {
+    cmd = {
+      {
+        cmd = "oilscp",
+        args = { "{src}", "{file}" },
+      },
+    },
+    file = function(convert, ctx)
+      return convert:tmpfile("data")
+    end,
+    on_error = function(step)
+      if uv.fs_stat(step.file) then
+        vim.fs.rm(step.file)
+      end
+    end,
+  },
   typ = {
     ft = "pdf",
     cmd = {
@@ -329,6 +345,10 @@ function Convert:resolve()
     self:_resolve("url")
     self:_resolve("identify")
   end
+  if M.is_oil_ssh_url(self.src) then
+    self:_resolve("oilssh")
+    self:_resolve("identify")
+  end
   while self:ft() ~= "png" do
     local ft = self:ft()
     local target = commands[ft] and ft or "convert"
@@ -454,7 +474,7 @@ function Convert:run()
     return self:on_done()
   end
 
-  if not M.is_uri(self.src) and vim.fn.filereadable(self.src) == 0 then
+  if not M.is_uri(self.src) and not M.is_oil_ssh_url(self.src) and vim.fn.filereadable(self.src) == 0 then
     local f = M.is_uri(self.src) and self.src or vim.fn.fnamemodify(self.src, ":p:~")
     self._err = ("File not found\n- `%s`"):format(f)
     return self:on_done()
@@ -471,6 +491,10 @@ end
 ---@param src string
 function M.is_uri(src)
   return src:find("^%w%w+://") == 1
+end
+
+function M.is_oil_ssh_url(src)
+  return src:find("^oil%-ssh:/") == 1
 end
 
 ---@param src string
